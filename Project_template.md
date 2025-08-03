@@ -40,7 +40,22 @@
 ### Состояния топиков Kafka
 ![Состояния топиков Kafka](screenshots/kafka_topics.png)
 
-## Задание 3-4
+## Задание 3
+
+### Список подов
+![Список подов](screenshots/list_pods.png)
+
+### Логи Events Service
+![Логи Events Service](screenshots/logs_events_service.png)
+
+### Получение списка фильмов
+
+![Получение списка фильмов](screenshots/list_movies.png)
+
+## Задание 4
+
+### Скриншот развертывания helm
+![Скриншот развертывания helm](screenshots/helm_upgrade.png)
 
 # Задание 5
 Компания планирует активно развиваться и для повышения надежности, безопасности, реализации сетевых паттернов типа Circuit Breaker и канареечного деплоя вам как архитектору необходимо развернуть istio и настроить circuit breaker для monolith и movies сервисов.
