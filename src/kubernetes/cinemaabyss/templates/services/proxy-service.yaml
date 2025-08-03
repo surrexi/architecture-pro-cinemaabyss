@@ -1,0 +1,78 @@
+---
+# Source: cinemaabyss/templates/services/proxy-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: proxy-service
+  namespace: cinemaabyss
+  labels:
+    app: proxy-service
+    app.kubernetes.io/name: cinemaabyss
+    app.kubernetes.io/instance: cinemaabyss
+spec:
+  selector:
+    app: proxy-service
+    ports:
+      - port: 80
+        targetPort: 8000
+    type: ClusterIP
+---
+# Source: cinemaabyss/templates/services/proxy-service.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: proxy-service
+  namespace: cinemaabyss
+  labels:
+    app: proxy-service
+    app.kubernetes.io/name: cinemaabyss
+    app.kubernetes.io/instance: cinemaabyss
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: proxy-service
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: proxy-service
+    spec:
+      imagePullSecrets:
+        - name: dockerconfigjson
+      restartPolicy: Always
+      containers:
+        - name: proxy-service
+          image: ghcr.io/surrexi/architecture-pro-cinemaabyss/proxy-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+          env:
+            - name: PORT
+              value: "8000"
+          envFrom:
+            - configMapRef:
+                name: cinemaabyss-config
+          resources:
+            limits:
+              cpu: 300m
+              memory: 256Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 20

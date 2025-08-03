@@ -1,8 +1,32 @@
+---
+# Source: cinemaabyss/templates/services/postgres.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: cinemaabyss
+  labels:
+    app: postgres
+    app.kubernetes.io/name: cinemaabyss
+    app.kubernetes.io/instance: cinemaabyss
+spec:
+  selector:
+    app: postgres
+  ports:
+  - port: 5432
+    targetPort: 5432
+  type: ClusterIP
+---
+# Source: cinemaabyss/templates/services/postgres.yaml
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: postgres
   namespace: cinemaabyss
+  labels:
+    app: postgres
+    app.kubernetes.io/name: cinemaabyss
+    app.kubernetes.io/instance: cinemaabyss
 spec:
   serviceName: postgres
   replicas: 1
@@ -17,6 +41,7 @@ spec:
       containers:
       - name: postgres
         image: postgres:14
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 5432
         env:
@@ -37,11 +62,11 @@ spec:
               key: DB_NAME
         resources:
           limits:
-            cpu: "1000m"
-            memory: "1Gi"
+            cpu: 1000m
+            memory: 1Gi
           requests:
-            cpu: "500m"
-            memory: "512Mi"
+            cpu: 500m
+            memory: 512Mi
         volumeMounts:
         - name: postgres-data
           mountPath: /var/lib/postgresql/data
@@ -69,16 +94,3 @@ spec:
       resources:
         requests:
           storage: 10Gi
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: postgres
-  namespace: cinemaabyss
-spec:
-  selector:
-    app: postgres
-  ports:
-  - port: 5432
-    targetPort: 5432
-  type: ClusterIP

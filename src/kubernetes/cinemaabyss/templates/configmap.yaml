@@ -1,8 +1,13 @@
+---
+# Source: cinemaabyss/templates/configmap.yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: cinemaabyss-config
   namespace: cinemaabyss
+  labels:
+    app.kubernetes.io/name: cinemaabyss
+    app.kubernetes.io/instance: cinemaabyss
 data:
   # Database configuration
   DB_HOST: "postgres"
@@ -17,3 +22,6 @@ data:
   # Strangler Fig configuration
   GRADUAL_MIGRATION: "true"
   MOVIES_MIGRATION_PERCENT: "100"
+
+  #Kafka
+  KAFKA_BROKERS: "kafka:9092"

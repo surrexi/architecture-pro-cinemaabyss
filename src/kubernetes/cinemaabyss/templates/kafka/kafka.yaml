@@ -1,4 +1,39 @@
 ---
+# Source: cinemaabyss/templates/kafka/kafka.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: zookeeper-data
+  namespace: cinemaabyss
+  labels:
+    app: zookeeper
+    app.kubernetes.io/name: cinemaabyss
+    app.kubernetes.io/instance: cinemaabyss
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+# Source: cinemaabyss/templates/kafka/kafka.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kafka-data
+  namespace: cinemaabyss
+  labels:
+    app: kafka
+    app.kubernetes.io/name: cinemaabyss
+    app.kubernetes.io/instance: cinemaabyss
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+# Source: cinemaabyss/templates/kafka/kafka.yaml
 apiVersion: v1
 kind: Service
 metadata:
@@ -6,6 +41,8 @@ metadata:
   namespace: cinemaabyss
   labels:
     app: zookeeper
+    app.kubernetes.io/name: cinemaabyss
+    app.kubernetes.io/instance: cinemaabyss
 spec:
   ports:
   - port: 2181
@@ -17,23 +54,33 @@ spec:
   selector:
     app: zookeeper
 ---
+# Source: cinemaabyss/templates/kafka/kafka.yaml
 apiVersion: v1
-kind: PersistentVolumeClaim
+kind: Service
 metadata:
-  name: zookeeper-data
+  name: kafka
   namespace: cinemaabyss
+  labels:
+    app: kafka
+    app.kubernetes.io/name: cinemaabyss
+    app.kubernetes.io/instance: cinemaabyss
 spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1Gi
+  ports:
+  - port: 9092
+    name: kafka
+  selector:
+    app: kafka
 ---
+# Source: cinemaabyss/templates/kafka/kafka.yaml
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: zookeeper
   namespace: cinemaabyss
+  labels:
+    app: zookeeper
+    app.kubernetes.io/name: cinemaabyss
+    app.kubernetes.io/instance: cinemaabyss
 spec:
   serviceName: zookeeper
   replicas: 1
@@ -47,7 +94,8 @@ spec:
     spec:
       containers:
       - name: zookeeper
-        image: wurstmeister/zookeeper
+        image: wurstmeister/zookeeper:latest
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 2181
           name: client
@@ -56,12 +104,12 @@ spec:
         - containerPort: 3888
           name: leader-election
         resources:
-          requests:
-            memory: "256Mi"
-            cpu: "100m"
           limits:
-            memory: "512Mi"
-            cpu: "500m"
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 100m
+            memory: 256Mi
         env:
         - name: ZOOKEEPER_CLIENT_PORT
           value: "2181"
@@ -85,37 +133,16 @@ spec:
         persistentVolumeClaim:
           claimName: zookeeper-data
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  name: kafka
-  namespace: cinemaabyss
-  labels:
-    app: kafka
-spec:
-  ports:
-  - port: 9092
-    name: kafka
-  selector:
-    app: kafka
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: kafka-data
-  namespace: cinemaabyss
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 5Gi
----
+# Source: cinemaabyss/templates/kafka/kafka.yaml
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: kafka
   namespace: cinemaabyss
+  labels:
+    app: kafka
+    app.kubernetes.io/name: cinemaabyss
+    app.kubernetes.io/instance: cinemaabyss
 spec:
   serviceName: kafka
   replicas: 1
@@ -130,16 +157,17 @@ spec:
       containers:
       - name: kafka
         image: wurstmeister/kafka:2.13-2.7.0
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 9092
           name: kafka
         resources:
-          requests:
-            memory: "512Mi"
-            cpu: "200m"
           limits:
-            memory: "1Gi"
-            cpu: "1000m"
+            cpu: 1000m
+            memory: 1Gi
+          requests:
+            cpu: 200m
+            memory: 512Mi
         env:
         - name: KAFKA_ADVERTISED_LISTENERS
           value: PLAINTEXT://kafka:9092

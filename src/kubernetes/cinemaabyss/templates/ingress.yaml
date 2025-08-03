@@ -1,0 +1,33 @@
+---
+# Source: cinemaabyss/templates/ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: cinemaabyss-ingress
+  namespace: cinemaabyss
+  labels:
+    app.kubernetes.io/name: cinemaabyss
+    app.kubernetes.io/instance: cinemaabyss
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: cinemaabyss.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: proxy-service
+            port:
+              number: 80
+      - path: /api/events
+        pathType: Prefix
+        backend:
+          service:
+            name: events-service
+            port:
+              number: 8082
