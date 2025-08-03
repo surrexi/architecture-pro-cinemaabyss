@@ -1,0 +1,47 @@
+@startuml C4_Container
+!includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+LAYOUT_WITH_LEGEND()
+
+Person(user, "Пользователь", "Ноутбуки, Smart TV, мобильные устройства")
+
+System_Boundary(c1, "КиноБездна") {
+    Container(api_gateway, "API Gateway", "Nginx/Go", "Единая точка входа для клиентов, маршрутизация запросов к сервисам")
+    Container(auth_service, "Auth Service", "Go", "Регистрация, авторизация, управление токенами")
+    Container(user_service, "User Service", "Go", "Управление профилем пользователя")
+    Container(movies_service, "Movies Service", "Go", "Метаданные фильмов, жанры, рейтинги")
+    Container(payments_service, "Payments Service", "Go", "Платежи и подписки")
+    Container(events_service, "Events Service", "Go", "События системы: просмотры, рейтинги, платежи, авторизация")
+
+    ContainerDb(pg, "PostgreSQL", "БД", "Хранение данных сервисов (каждый сервис может иметь отдельную схему или базу)")
+    Container(s3, "S3", "Объектное хранилище", "Хранение контента (обложки, медиа)")
+    ContainerQueue(kafka, "Kafka", "Брокер сообщений", "Асинхронный обмен событиями между сервисами")
+}
+
+System_Ext(payment_system, "Платёжная система", "Внешняя система для обработки платежей")
+System_Ext(recommendation_system, "Рекомендательная система", "Внешняя система рекомендаций")
+System_Ext(online_cinema, "Онлайн-кинотеатры", "Внешние системы, предоставляющие контент")
+
+Rel(user, api_gateway, "Использует", "HTTPS")
+Rel(api_gateway, auth_service, "Маршрутизирует запросы", "gRPC/REST")
+Rel(api_gateway, user_service, "Маршрутизирует запросы", "gRPC/REST")
+Rel(api_gateway, movies_service, "Маршрутизирует запросы", "gRPC/REST")
+Rel(api_gateway, payments_service, "Маршрутизирует запросы", "gRPC/REST")
+
+Rel(auth_service, pg, "Читает/пишет", "SQL")
+Rel(user_service, pg, "Читает/пишет", "SQL")
+Rel(movies_service, pg, "Читает/пишет", "SQL")
+Rel(payments_service, pg, "Читает/пишет", "SQL")
+Rel(events_service, pg, "Читает/пишет", "SQL")
+
+Rel(movies_service, s3, "Хранит контент", "S3 API")
+Rel(payments_service, payment_system, "Обрабатывает платежи", "REST/gRPC")
+
+Rel(events_service, kafka, "Публикует/читает события", "Kafka")
+Rel(movies_service, kafka, "Публикует/читает события", "Kafka")
+Rel(payments_service, kafka, "Публикует/читает события", "Kafka")
+Rel(auth_service, kafka, "Публикует/читает события", "Kafka")
+
+Rel(kafka, recommendation_system, "Передаёт события", "Kafka")
+Rel(movies_service, online_cinema, "Получает контент", "REST/gRPC")
+Rel(events_service, online_cinema, "Передаёт статистику просмотров", "Kafka/REST")
+@enduml
